@@ -6,23 +6,49 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React,{useEffect} from 'react';
 import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   useColorScheme,
-  View,
+  Button,
+  NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
+
+const {CalendarModule}=NativeModules;
+const eventEmitter=new NativeEventEmitter(CalendarModule);
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
+
+  useEffect(()=>{
+eventEmitter.addListener('EventCount',eventCount=>{
+  console.log('EventCount: ',eventCount);
+})
+
+return()=>{
+  eventEmitter.removeAllListeners()
+}
+  },[])
+
+const createCalendarEventPromise = async()=>{
+try{
+ const result=await CalendarModule.createCalendarEventPromise();
+ console.log("result",result)
+}catch(e){
+  const {message}=e;
+  console.log("e",message)
+}
+}
 
   return (
     <SafeAreaView style={{flex:1, alignItems:'center',justifyContent:'center'}}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <Text>Hello</Text>
+      <Button title='Calendar Event Promise' onPress={createCalendarEventPromise} />
     </SafeAreaView>
   );
 };
